@@ -9,15 +9,21 @@ def process_payment(user_id, amount, method):
         span.set_attribute("payment.amount", amount)
         span.set_attribute("payment.method", method)
 
-        time.sleep(0.5)
+        try:
+            time.sleep(0.5)
 
-        approved = random.choice([True, True, True, False])
+            approved = random.choice([True, True, True, False])
 
-        if approved:
-            span.set_attribute("payment.status", "approved")
-            return "approved"
+            if approved:
+                span.set_attribute("payment.status", "approved")
+                return "approved"
 
-        span.set_attribute("payment.status", "failed")
-        span.set_attribute("error", True)
-        span.set_attribute("error.message", "Payment failed")
-        raise Exception("Payment failed")
+            raise Exception("Payment failed")
+
+        except Exception as e:
+            span.set_attribute("payment.status", "failed")
+            span.set_attribute("error", True)
+            span.set_attribute("error.message", str(e))
+
+            span.record_exception(e)  
+            raise
